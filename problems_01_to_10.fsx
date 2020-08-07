@@ -135,3 +135,64 @@ type 'a NestedList =
 /// val it : int list = []
 
 let l1 = List [ Elem(1);Elem(2);Elem(3);Elem(4);Elem(5)]
+
+let rec flatten (input:'a NestedList) =
+    let rec flattenList (args:'a NestedList list) output = 
+        match args with 
+        | [] -> output
+        | [x] -> output @ flatten x
+        | head :: tail -> let firstPiece = flatten head 
+                          let secondPiece = flattenList tail []
+                          output @ firstPiece @ secondPiece
+    match input with
+    | List aList -> flattenList aList []
+    | Elem anElement -> [anElement];;
+
+flatten l1;;
+flatten (Elem 5);;
+flatten (List [Elem 1; List [Elem 2; List [Elem 3; Elem 4]; Elem 5]]);;
+
+// Problem 8. Eliminate consecutive duplicates of of list elements
+/// If a list contains repeated elements they should be replaced with a single copy of the 
+/// element. The order of the elements should not be changed.
+/// Example in F#: 
+/// 
+/// > compress ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"];;
+/// val it : string list = ["a";"b";"c";"a";"d";"e"]
+
+let rec compress input output =
+        match input with 
+        | [] -> output
+        | [x] -> output @ [x]
+        | h::t -> if h = List.head t then
+                      compress ([h] @ List.tail t) output
+                  else
+                      compress t (output @ [h])
+
+compress ["a";"a";"a";"a";"b";"c";"c";"a";"a";"d";"e";"e";"e";"e"] [];;
+
+// Problem 9. Pack consecutive duplicates of list elements into sublists.
+/// If a list contains repeated elements they should be placed 
+/// in separate sublists.
+// Example in F#: 
+/// 
+/// > pack ['a'; 'a'; 'a'; 'a'; 'b'; 'c'; 'c'; 'a'; 
+///         'a'; 'd'; 'e'; 'e'; 'e'; 'e']
+/// val it : char list list =
+///  [['a'; 'a'; 'a'; 'a']; ['b']; ['c'; 'c']; ['a'; 'a']; ['d'];
+///   ['e'; 'e'; 'e'; 'e']]
+
+let pack (input: 'a list) =
+    let rec packAux (args:'a list) (subList: 'a list) output =
+        match args with
+        | [] -> output @ [subList]
+        | [x] -> packAux [] (subList @ [x]) output
+        | h::t -> if h = List.head t then
+                     packAux t (subList @ [h]) output
+                  else
+                     packAux t [] (List.append output [subList @ [h]])
+
+    let output = packAux input [] []
+    output;;
+
+pack ['a'; 'a'; 'a'; 'a'; 'b'; 'c'; 'c'; 'a'; 'a'; 'd'; 'e'; 'e'; 'e'; 'e'];;
